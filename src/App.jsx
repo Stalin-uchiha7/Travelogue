@@ -15,6 +15,7 @@ import AddProperty from './pages/AddProperty';
 import Profile from './pages/Profile';
 import ManageSampleData from './pages/ManageSampleData';
 import Favorites from './pages/Favorites';
+import About from './pages/About';
 
 const theme = createTheme({
   palette: {
@@ -155,7 +156,7 @@ const AppContent = () => {
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/settings" element={<ComingSoonPage title="Settings" description="Manage your account settings and preferences." />} />
           <Route path="/help" element={<ComingSoonPage title="Help & Support" description="Get help and contact support." />} />
-          <Route path="/about" element={<ComingSoonPage title="About Travelogue" description="Learn more about our travel platform." />} />
+          <Route path="/about" element={<About />} />
         </Routes>
       </Box>
     </Box>

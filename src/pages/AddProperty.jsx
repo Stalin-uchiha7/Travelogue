@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import {
   Container,
   TextField,
@@ -12,8 +12,12 @@ import {
   CardContent,
   Rating,
   Grid,
-  CircularProgress
+  CircularProgress,
+  Chip,
+  Divider
 } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -26,8 +30,29 @@ const AddProperty = () => {
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   const [images, setImages] = useState('');
+  const [amenities, setAmenities] = useState([]);
+  const [amenityInput, setAmenityInput] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const handleAddAmenity = () => {
+    if (amenityInput.trim() && !amenities.includes(amenityInput.trim())) {
+      setAmenities([...amenities, amenityInput.trim()]);
+      setAmenityInput('');
+    }
+  };
+
+  const handleRemoveAmenity = (amenity) => {
+    setAmenities(amenities.filter(a => a !== amenity));
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddAmenity();
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -60,11 +85,24 @@ const AddProperty = () => {
         price: parseFloat(price),
         description: description.trim() || '',
         images: imagesArray.length > 0 ? imagesArray : [],
-        createdAt: new Date()
+        amenities: amenities.length > 0 ? amenities : [],
+        createdAt: serverTimestamp()
       });
 
-      // Navigate back to properties list
-      navigate('/');
+      setSuccess('Property added successfully!');
+      // Clear form
+      setName('');
+      setLocation('');
+      setStars(0);
+      setPrice('');
+      setDescription('');
+      setImages('');
+      setAmenities([]);
+      
+      // Navigate back after 1.5 seconds
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
     } catch (err) {
       setError('Failed to add property: ' + err.message);
     } finally {
@@ -110,28 +148,35 @@ const AddProperty = () => {
       }}
     >
       <Container maxWidth="md" sx={{ py: 4, px: { xs: 2, sm: 3 } }}>
-      <Typography 
-        variant="h4" 
-        component="h1" 
-        gutterBottom 
-        sx={{ 
-          mb: 4, 
-          fontWeight: 800, 
-          color: 'white',
-          textShadow: '0 2px 4px rgba(0,0,0,0.2)',
-          letterSpacing: '-0.5px'
-        }}
-      >
-        ✨ Add New Property
-      </Typography>
+        <Box sx={{ mb: 4 }}>
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            sx={{ 
+              fontWeight: 800, 
+              color: '#212121',
+              mb: 1
+            }}
+          >
+            Add New Property
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Fill in the details below to add a new property to the platform
+          </Typography>
+        </Box>
 
-      <Card sx={{ backgroundColor: 'rgba(255,255,255,0.98)', borderRadius: '20px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
-        <CardContent sx={{ p: 4 }}>
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          )}
+        <Card sx={{ backgroundColor: 'rgba(255,255,255,0.98)', borderRadius: '20px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+          <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
+            {error && (
+              <Alert severity="error" sx={{ mb: 3, borderRadius: '12px' }}>
+                {error}
+              </Alert>
+            )}
+            {success && (
+              <Alert severity="success" sx={{ mb: 3, borderRadius: '12px' }}>
+                {success}
+              </Alert>
+            )}
 
           <Box component="form" onSubmit={handleSubmit}>
             <Grid container spacing={3}>
@@ -191,8 +236,61 @@ const AddProperty = () => {
                   label="Description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe the property, amenities, etc."
+                  placeholder="Describe the property, amenities, nearby attractions, etc."
+                  helperText="Provide a detailed description of the property"
                 />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Divider sx={{ my: 1 }} />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, color: '#212121' }}>
+                  Amenities
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                  {amenities.map((amenity, index) => (
+                    <Chip
+                      key={index}
+                      label={amenity}
+                      onDelete={() => handleRemoveAmenity(amenity)}
+                      deleteIcon={<DeleteIcon />}
+                      sx={{
+                        backgroundColor: 'rgba(198, 40, 40, 0.1)',
+                        color: '#c62828',
+                        fontWeight: 500,
+                        '& .MuiChip-deleteIcon': {
+                          color: '#c62828'
+                        }
+                      }}
+                    />
+                  ))}
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Add Amenity"
+                    value={amenityInput}
+                    onChange={(e) => setAmenityInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="e.g., WiFi, Pool, Parking, Breakfast"
+                    helperText="Press Enter or click Add to include an amenity"
+                  />
+                  <Button
+                    variant="outlined"
+                    onClick={handleAddAmenity}
+                    sx={{ minWidth: 100, height: '40px' }}
+                    startIcon={<AddIcon />}
+                  >
+                    Add
+                  </Button>
+                </Box>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Divider sx={{ my: 1 }} />
               </Grid>
 
               <Grid item xs={12}>
@@ -204,16 +302,22 @@ const AddProperty = () => {
                   value={images}
                   onChange={(e) => setImages(e.target.value)}
                   placeholder="Enter image URLs separated by commas (e.g., https://example.com/image1.jpg, https://example.com/image2.jpg)"
-                  helperText="Enter multiple image URLs separated by commas"
+                  helperText="Enter multiple image URLs separated by commas. Use high-quality images for best results."
                 />
               </Grid>
 
               <Grid item xs={12}>
-                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2, pt: 2 }}>
                   <Button
                     variant="outlined"
                     onClick={() => navigate('/')}
                     disabled={loading}
+                    sx={{
+                      px: 3,
+                      py: 1.5,
+                      borderRadius: '12px',
+                      fontWeight: 600
+                    }}
                   >
                     Cancel
                   </Button>
@@ -221,13 +325,23 @@ const AddProperty = () => {
                     type="submit"
                     variant="contained"
                     disabled={loading}
-                    sx={{ minWidth: 120 }}
+                    sx={{
+                      minWidth: 150,
+                      px: 3,
+                      py: 1.5,
+                      borderRadius: '12px',
+                      backgroundColor: '#c62828',
+                      fontWeight: 600,
+                      '&:hover': {
+                        backgroundColor: '#b71c1c'
+                      }
+                    }}
                   >
                     {loading ? (
-                      <>
-                        <CircularProgress size={20} sx={{ mr: 1 }} />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CircularProgress size={20} sx={{ color: 'white' }} />
                         Adding...
-                      </>
+                      </Box>
                     ) : (
                       'Add Property'
                     )}
