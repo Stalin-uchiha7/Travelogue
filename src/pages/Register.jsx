@@ -92,7 +92,18 @@ const Register = () => {
           </Typography>
 
           {error && (
-            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+            <Alert 
+              severity="error" 
+              sx={{ 
+                width: '100%', 
+                mb: 2,
+                backgroundColor: 'white',
+                color: '#d43736',
+                '& .MuiAlert-icon': {
+                  color: '#d43736'
+                }
+              }}
+            >
               {error}
             </Alert>
           )}
@@ -152,7 +163,7 @@ const Register = () => {
             <Typography
               variant="caption"
               sx={{
-                color: 'rgba(255, 255, 255, 0.8)',
+                color: '#d43736',
                 fontSize: '0.75rem',
                 alignSelf: 'flex-start',
                 ml: 1,
@@ -169,7 +180,7 @@ const Register = () => {
                 mt: 2,
                 py: 1.5,
                 backgroundColor: 'white',
-                color: '#1976d2',
+                color: '#d43736',
                 borderRadius: '8px',
                 textTransform: 'uppercase',
                 fontWeight: 'bold',
@@ -186,7 +197,7 @@ const Register = () => {
                 to="/login"
                 style={{
                   textDecoration: 'none',
-                  color: 'white',
+                  color: '#d43736',
                   fontSize: '16px',
                 }}
               >

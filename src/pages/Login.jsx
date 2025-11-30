@@ -76,7 +76,18 @@ const Login = () => {
           </Typography>
 
           {error && (
-            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+            <Alert 
+              severity="error" 
+              sx={{ 
+                width: '100%', 
+                mb: 2,
+                backgroundColor: 'white',
+                color: '#d43736',
+                '& .MuiAlert-icon': {
+                  color: '#d43736'
+                }
+              }}
+            >
               {error}
             </Alert>
           )}
@@ -142,7 +153,7 @@ const Login = () => {
                 mt: 2,
                 py: 1.5,
                 backgroundColor: 'white',
-                color: '#1976d2',
+                color: '#d43736',
                 borderRadius: '8px',
                 textTransform: 'uppercase',
                 fontWeight: 'bold',
@@ -159,7 +170,7 @@ const Login = () => {
                 to="/register"
                 style={{
                   textDecoration: 'none',
-                  color: 'white',
+                  color: '#d43736',
                   fontSize: '16px',
                 }}
               >

@@ -8,14 +8,12 @@ import {
   Avatar,
   Menu,
   MenuItem,
-  Badge,
   InputBase,
   Paper
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   Search as SearchIcon,
-  Notifications as NotificationsIcon,
   Person as PersonIcon,
   Settings as SettingsIcon,
   Logout as LogoutIcon
@@ -148,25 +146,6 @@ const Navbar = ({ onMenuClick, sidebarOpen }) => {
 
         {currentUser && (
           <>
-
-            <IconButton
-              color="inherit"
-              sx={{
-                mr: 2,
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.1)'
-                }
-              }}
-              onClick={() => {
-                // Notifications functionality can be added here
-                console.log('Notifications clicked');
-              }}
-            >
-              <Badge badgeContent={0} color="error">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
-
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               {isAdmin && (
                 <Box

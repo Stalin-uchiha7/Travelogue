@@ -147,16 +147,16 @@ const AppContent = () => {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/" element={<PropertiesList />} />
-          <Route path="/property/:id" element={<PropertyDetails />} />
-          <Route path="/add-property" element={<AddProperty />} />
-          <Route path="/manage-sample-data" element={<ManageSampleData />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/bookings" element={<ComingSoonPage title="My Bookings" description="View and manage your bookings here." />} />
-          <Route path="/favorites" element={<Favorites />} />
-          <Route path="/settings" element={<ComingSoonPage title="Settings" description="Manage your account settings and preferences." />} />
-          <Route path="/help" element={<ComingSoonPage title="Help & Support" description="Get help and contact support." />} />
-          <Route path="/about" element={<About />} />
+          <Route path="/" element={<PrivateRoute><PropertiesList /></PrivateRoute>} />
+          <Route path="/property/:id" element={<PrivateRoute><PropertyDetails /></PrivateRoute>} />
+          <Route path="/add-property" element={<PrivateRoute><AddProperty /></PrivateRoute>} />
+          <Route path="/manage-sample-data" element={<PrivateRoute><ManageSampleData /></PrivateRoute>} />
+          <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+          <Route path="/bookings" element={<PrivateRoute><ComingSoonPage title="My Bookings" description="View and manage your bookings here." /></PrivateRoute>} />
+          <Route path="/favorites" element={<PrivateRoute><Favorites /></PrivateRoute>} />
+          <Route path="/settings" element={<PrivateRoute><ComingSoonPage title="Settings" description="Manage your account settings and preferences." /></PrivateRoute>} />
+          <Route path="/help" element={<PrivateRoute><ComingSoonPage title="Help & Support" description="Get help and contact support." /></PrivateRoute>} />
+          <Route path="/about" element={<PrivateRoute><About /></PrivateRoute>} />
         </Routes>
       </Box>
     </Box>
