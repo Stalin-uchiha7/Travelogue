@@ -42,6 +42,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import ClearIcon from '@mui/icons-material/Clear';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { useFeatureFlag } from '../contexts/FeatureFlagContext';
 import { toggleFavorite, getFavoriteId } from '../utils/favorites';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
@@ -64,6 +65,7 @@ const PropertiesList = () => {
   const [imageErrors, setImageErrors] = useState({});
   const navigate = useNavigate();
   const { currentUser, isAdmin } = useAuth();
+  const { hideAdvancedFeatures } = useFeatureFlag();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(15);
   const [favoriteStatus, setFavoriteStatus] = useState({}); // { propertyId: favoriteId | null }
@@ -104,10 +106,13 @@ const PropertiesList = () => {
     fetchProperties();
   }, []);
 
-  // Load favorite status for all properties
+  // Load favorite status for all properties (only if advanced features are enabled)
   useEffect(() => {
     const loadFavoriteStatus = async () => {
-      if (!currentUser || properties.length === 0) return;
+      if (!currentUser || properties.length === 0 || hideAdvancedFeatures) {
+        setFavoriteStatus({});
+        return;
+      }
 
       const statusMap = {};
       await Promise.all(
@@ -120,7 +125,7 @@ const PropertiesList = () => {
     };
 
     loadFavoriteStatus();
-  }, [currentUser, properties]);
+  }, [currentUser, properties, hideAdvancedFeatures]);
 
   useEffect(() => {
     let filtered = properties;
@@ -645,7 +650,7 @@ const PropertiesList = () => {
                   }}
                   onClick={() => navigate(`/property/${property.id}`)}
                 >
-                  {currentUser && (
+                  {currentUser && !hideAdvancedFeatures && (
                     <Box sx={{ position: 'absolute', top: 8, right: 8, zIndex: 10 }}>
                       <IconButton
                         onClick={async (e) => {

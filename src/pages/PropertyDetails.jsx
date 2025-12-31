@@ -30,6 +30,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { useFeatureFlag } from '../contexts/FeatureFlagContext';
 import { toggleFavorite, getFavoriteId } from '../utils/favorites';
 
 // Generate a consistent color for each user based on their ID
@@ -71,6 +72,7 @@ const PropertyDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const { hideAdvancedFeatures } = useFeatureFlag();
   const [property, setProperty] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -107,10 +109,12 @@ const PropertyDetails = () => {
           ...propertySnapshot.data()
         });
 
-        // Load favorite status if user is logged in
-        if (currentUser) {
+        // Load favorite status if user is logged in and advanced features are enabled
+        if (currentUser && !hideAdvancedFeatures) {
           const favId = await getFavoriteId(currentUser.uid, id);
           setFavoriteId(favId);
+        } else {
+          setFavoriteId(null);
         }
 
         setLoading(false);
@@ -121,7 +125,7 @@ const PropertyDetails = () => {
     };
 
     fetchProperty();
-  }, [id, currentUser]);
+  }, [id, currentUser, hideAdvancedFeatures]);
 
   useEffect(() => {
     if (!id) return;
@@ -309,7 +313,7 @@ const PropertyDetails = () => {
             <Typography variant="h4" component="h1" sx={{ fontWeight: 800, color: '#212121', flex: 1 }}>
               {property.name}
             </Typography>
-            {currentUser && (
+            {currentUser && !hideAdvancedFeatures && (
               <IconButton
                 onClick={async () => {
                   // Trigger animation

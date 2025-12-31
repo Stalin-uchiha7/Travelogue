@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Map Pin -->
+  <path
+    d="M32 2C20.95 2 12 10.95 12 22c0 14.5 20 40 20 40s20-25.5 20-40C52 10.95 43.05 2 32 2z"
+    fill="#C62828"
+  />
+  <!-- Inner Circle -->
+  <circle cx="32" cy="22" r="12" fill="#ffffff"/>
+  <!-- Letter T -->
+  <text
+    x="32"
+    y="28"
+    text-anchor="middle"
+    font-size="16"
+    font-weight="700"
+    font-family="Arial, Helvetica, sans-serif"
+    fill="#C62828">
+    T
+  </text>
+</svg>
+

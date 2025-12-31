@@ -14,7 +14,10 @@ import {
   Alert,
   Grid,
   Divider,
-  Paper
+  Paper,
+  Switch,
+  FormControlLabel,
+  Tooltip
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -26,10 +29,12 @@ import {
 } from '@mui/icons-material';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { useFeatureFlag } from '../contexts/FeatureFlagContext';
 
 const Profile = () => {
   const navigate = useNavigate();
   const { currentUser, isAdmin, userRole } = useAuth();
+  const { hideAdvancedFeatures, updateFeatureFlag } = useFeatureFlag();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -39,6 +44,7 @@ const Profile = () => {
     name: '',
     email: ''
   });
+  const [localHideAdvancedFeatures, setLocalHideAdvancedFeatures] = useState(true);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -60,6 +66,8 @@ const Profile = () => {
             name: data.name || currentUser.email?.split('@')[0] || '',
             email: data.email || currentUser.email || ''
           });
+          // Set local feature flag state (default to true if not set)
+          setLocalHideAdvancedFeatures(data.hideAdvancedFeatures !== undefined ? data.hideAdvancedFeatures : true);
         } else {
           // If user document doesn't exist, create it with defaults
           setFormData({
@@ -87,6 +95,8 @@ const Profile = () => {
       name: userData?.name || currentUser?.email?.split('@')[0] || '',
       email: userData?.email || currentUser?.email || ''
     });
+    // Reset feature flag to current value
+    setLocalHideAdvancedFeatures(userData?.hideAdvancedFeatures !== undefined ? userData.hideAdvancedFeatures : true);
   };
 
   const handleSave = async () => {
@@ -97,18 +107,43 @@ const Profile = () => {
 
     try {
       const userDocRef = doc(db, 'users', userData.id);
-      await updateDoc(userDocRef, {
+      const updateData = {
         name: formData.name.trim(),
         email: formData.email.trim()
-      });
+      };
+      
+      // Update feature flag if admin (always include it if admin, even if unchanged)
+      if (isAdmin) {
+        updateData.hideAdvancedFeatures = localHideAdvancedFeatures;
+      }
+      
+      await updateDoc(userDocRef, updateData);
 
-      setUserData({ ...userData, ...formData });
+      // Update context if admin and feature flag changed
+      if (isAdmin) {
+        try {
+          await updateFeatureFlag(currentUser.uid, localHideAdvancedFeatures);
+        } catch (err) {
+          console.warn('Failed to update feature flag context:', err);
+          // Continue even if context update fails
+        }
+      }
+
+      setUserData({ ...userData, ...formData, hideAdvancedFeatures: localHideAdvancedFeatures });
       setEditing(false);
     } catch (err) {
       setError('Failed to update profile: ' + err.message);
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleFeatureFlagToggle = (event) => {
+    if (!isAdmin) return; // Only admins can toggle
+    
+    const newValue = event.target.checked;
+    setLocalHideAdvancedFeatures(newValue);
+    // Don't save immediately - will be saved when user clicks "Save Changes"
   };
 
   if (!currentUser) {
@@ -258,7 +293,7 @@ const Profile = () => {
                   )}
                 </Box>
               </Box>
-              {!editing && (
+              {!editing ? (
                 <Button
                   variant="contained"
                   startIcon={<EditIcon />}
@@ -275,6 +310,44 @@ const Profile = () => {
                 >
                   Edit Profile
                 </Button>
+              ) : (
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<CancelIcon />}
+                    onClick={handleCancel}
+                    disabled={saving}
+                    sx={{
+                      borderRadius: '12px',
+                      px: 3,
+                      borderColor: '#757575',
+                      color: '#757575',
+                      '&:hover': {
+                        borderColor: '#424242',
+                        backgroundColor: 'rgba(0,0,0,0.04)'
+                      }
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="contained"
+                    startIcon={<SaveIcon />}
+                    onClick={handleSave}
+                    disabled={saving}
+                    sx={{
+                      backgroundColor: '#c62828',
+                      '&:hover': {
+                        backgroundColor: '#b71c1c'
+                      },
+                      fontWeight: 600,
+                      borderRadius: '12px',
+                      px: 3
+                    }}
+                  >
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </Box>
               )}
             </Box>
 
@@ -311,36 +384,42 @@ const Profile = () => {
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
-                    <Button
-                      variant="outlined"
-                      startIcon={<CancelIcon />}
-                      onClick={handleCancel}
-                      disabled={saving}
-                      sx={{
-                        borderRadius: '12px',
-                        px: 3
-                      }}
+                  <Box
+                    sx={{
+                      p: 2,
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(0,0,0,0.02)',
+                      border: '1px solid rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    <Tooltip
+                      title={!isAdmin ? "Only administrators can change this setting" : ""}
+                      arrow
                     >
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="contained"
-                      startIcon={<SaveIcon />}
-                      onClick={handleSave}
-                      disabled={saving}
-                      sx={{
-                        backgroundColor: '#c62828',
-                        '&:hover': {
-                          backgroundColor: '#b71c1c'
-                        },
-                        fontWeight: 600,
-                        borderRadius: '12px',
-                        px: 3
-                      }}
-                    >
-                      {saving ? 'Saving...' : 'Save Changes'}
-                    </Button>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={localHideAdvancedFeatures}
+                            onChange={handleFeatureFlagToggle}
+                            disabled={!isAdmin}
+                            color="primary"
+                          />
+                        }
+                        label={
+                          <Box>
+                            <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                              Hide Advanced Features
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
+                              {localHideAdvancedFeatures 
+                                ? "Basic mode enabled - Only Properties and Profile are visible"
+                                : "Advanced mode enabled - All features are visible"}
+                            </Typography>
+                          </Box>
+                        }
+                        sx={{ m: 0 }}
+                      />
+                    </Tooltip>
                   </Box>
                 </Grid>
               </Grid>
@@ -376,6 +455,14 @@ const Profile = () => {
                   </Typography>
                   <Typography variant="body2" sx={{ mt: 1, fontFamily: 'monospace', color: '#757575' }}>
                     {currentUser.uid.substring(0, 20)}...
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="caption" sx={{ color: '#757575', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    Advanced Features
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 1, fontWeight: 500, fontSize: '1.1rem' }}>
+                    {hideAdvancedFeatures ? 'Hidden (Basic Mode)' : 'Visible (Advanced Mode)'}
                   </Typography>
                 </Grid>
               </Grid>

@@ -34,6 +34,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { useFeatureFlag } from '../contexts/FeatureFlagContext';
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 80;
@@ -44,6 +45,7 @@ const Sidebar = ({ open, onClose, onToggle, mobileOpen }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { currentUser, isAdmin } = useAuth();
+  const { hideAdvancedFeatures } = useFeatureFlag();
 
   const handleDrawerToggle = () => {
     if (isMobile) {
@@ -91,7 +93,7 @@ const Sidebar = ({ open, onClose, onToggle, mobileOpen }) => {
         if (isMobile) onClose();
       },
       path: '/bookings',
-      show: currentUser
+      show: currentUser && !hideAdvancedFeatures
     },
     {
       text: 'Favorites',
@@ -101,7 +103,7 @@ const Sidebar = ({ open, onClose, onToggle, mobileOpen }) => {
         if (isMobile) onClose();
       },
       path: '/favorites',
-      show: currentUser
+      show: currentUser && !hideAdvancedFeatures
     },
     {
       text: 'Add Property',
@@ -111,7 +113,7 @@ const Sidebar = ({ open, onClose, onToggle, mobileOpen }) => {
         if (isMobile) onClose();
       },
       path: '/add-property',
-      show: currentUser && isAdmin
+      show: currentUser && isAdmin && !hideAdvancedFeatures
     },
     {
       text: 'Manage Sample Data',
@@ -121,7 +123,7 @@ const Sidebar = ({ open, onClose, onToggle, mobileOpen }) => {
         if (isMobile) onClose();
       },
       path: '/manage-sample-data',
-      show: currentUser && isAdmin
+      show: currentUser && isAdmin && !hideAdvancedFeatures
     },
     {
       text: 'Settings',
@@ -131,7 +133,7 @@ const Sidebar = ({ open, onClose, onToggle, mobileOpen }) => {
         if (isMobile) onClose();
       },
       path: '/settings',
-      show: currentUser
+      show: currentUser && !hideAdvancedFeatures
     },
     {
       text: 'Help & Support',
@@ -141,7 +143,7 @@ const Sidebar = ({ open, onClose, onToggle, mobileOpen }) => {
         if (isMobile) onClose();
       },
       path: '/help',
-      show: true
+      show: !hideAdvancedFeatures
     },
     {
       text: 'About',

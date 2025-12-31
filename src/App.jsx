@@ -5,6 +5,7 @@ import { Box, Container, Typography, useMediaQuery, useTheme } from '@mui/materi
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SearchProvider } from './contexts/SearchContext';
+import { FeatureFlagProvider } from './contexts/FeatureFlagContext';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
@@ -168,11 +169,13 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <SearchProvider>
-          <Router>
-            <AppContent />
-          </Router>
-        </SearchProvider>
+        <FeatureFlagProvider>
+          <SearchProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </SearchProvider>
+        </FeatureFlagProvider>
       </AuthProvider>
     </ThemeProvider>
   );

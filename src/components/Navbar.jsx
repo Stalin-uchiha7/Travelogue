@@ -23,12 +23,14 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { useSearch } from '../contexts/SearchContext';
+import { useFeatureFlag } from '../contexts/FeatureFlagContext';
 
 const Navbar = ({ onMenuClick, sidebarOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser, isAdmin } = useAuth();
   const { searchQuery, setSearchQuery } = useSearch();
+  const { hideAdvancedFeatures } = useFeatureFlag();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const isPropertiesPage = location.pathname === '/';
@@ -260,10 +262,12 @@ const Navbar = ({ onMenuClick, sidebarOpen }) => {
             <PersonIcon sx={{ mr: 2, fontSize: '1.25rem', color: '#757575' }} />
             My Profile
           </MenuItem>
-          <MenuItem onClick={handleSettings}>
-            <SettingsIcon sx={{ mr: 2, fontSize: '1.25rem', color: '#757575' }} />
-            Settings
-          </MenuItem>
+          {!hideAdvancedFeatures && (
+            <MenuItem onClick={handleSettings}>
+              <SettingsIcon sx={{ mr: 2, fontSize: '1.25rem', color: '#757575' }} />
+              Settings
+            </MenuItem>
+          )}
           <MenuItem onClick={handleLogout} sx={{ color: '#c62828' }}>
             <LogoutIcon sx={{ mr: 2, fontSize: '1.25rem' }} />
             Logout
